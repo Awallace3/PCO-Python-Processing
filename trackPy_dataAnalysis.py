@@ -1,9 +1,6 @@
 #from __future__ import division, unicode_literals, print_function  # for compatibility with Python 2 and 3
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-#from __future__ import division, unicode_literals, print_function  # for compatibility with Python 2 and 3
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series  # for convenience
@@ -24,6 +21,11 @@ def gray(image):
 def acquire_video(path):
 	return gray(pims.open(path))
 	
+def annotate_video(v, t2):
+	for i in range(len(v)):
+		plt.figure()
+		plt.title("Image:" + str(i))
+		tp.annotate(t2[t2['frame'] == i], v[i])
 
 def plots(v):
 	f = tp.locate(v[0], 5, invert=False )
@@ -41,7 +43,7 @@ def plots(v):
 def mainflow(
 		video_path, size=5, memory=3,
 		min_mass=25, max_size=2.6, max_ecc=0.3,
-        invertColor=True,
+        invertColor=True, fractionExistInFrames=1//8,
 		annotate=True, plots=False
 	):
 	v = acquire_video(video_path)
@@ -52,8 +54,10 @@ def mainflow(
 	maximum_displacement_between_frames = 5 # the larger, the slower the computation
 	memory = 3 # the amount of frames that a particle can "disappear" between appearances
 	t = tp.link(f, maximum_displacement_between_frames, memory=memory) # f, displacement in pixels, memory is number of frames backwards incase particle slips out of sight
+
 	t.head()
-	t1 = tp.filter_stubs(t, 10)
+
+	t1 = tp.filter_stubs(t, len(v)*fractionExistInFrames)
 	print('Before:', t['particle'].nunique())
 	print('After:', t1['particle'].nunique())
 
@@ -133,13 +137,15 @@ def mainflow(
 	return v, t2, n, A, D
 
 
-
 if __name__ == '__main__':
-	mainflow(
-		video_path=r'trackingvid.mp4', size=5, memory=3,
-		min_mass=25, max_size=2.6, max_ecc=0.3,
-		annotate=True, plots=False
+	v, t2, n, A, D = mainflow(
+			video_path=r'trackingvid.mp4', size=5, memory=10,
+			min_mass=20, max_size=2.6, max_ecc=0.3,
+			invertColor=False, fractionExistInFrames=1//8,
+			annotate=True, plots=False
 	)
+
+
 
 
 """
