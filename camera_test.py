@@ -1,3 +1,4 @@
+from numpy.core.fromnumeric import size
 import pco
 import matplotlib.pyplot as plt
 import time
@@ -7,7 +8,7 @@ from PIL import Image
 import glob
 import os
 import subprocess
-
+from sys import argv
 
 def generate_testing_nparrays(size=10):
 	imgb = np.zeros([600, 600, 3], dtype=np.uint8)
@@ -44,25 +45,48 @@ def gen_3d_from_file():
 	#load_original_arr = loaded_arr.reshape(loaded_arr.shape[0], loaded_arr.shape[1] // arr.shape[2], arr.shape[2])
   
 
+def take_pictures(img_lst):
+	start_time = time.time()
+	for n, i in enumerate(img_lst):
+		img = Image.fromarray(i.astype(np.uint8))
+		img.save('images/%d_%04d.png' % (start_time, n))
+
 
 def nparray_to_video(img_lst, video_name, fps ): # img_array is a list of 3d np_arrays
-	img_array = []
-	for i in img_lst:
-		img = cv2.cvtColor(np.array(i), cv2.COLOR_BGR2RGB)
-		height, width, layers = img.shape
+
+	#img_array = []
+	start_time = time.time()
+	for n, i in enumerate(img_lst):
+
+		#print("img1:",i)
+		#cv2.imwrite("images/image.png", i)
+		img = Image.fromarray(i.astype(np.uint8))
+
+		img.save('images/%d_%04d.png' % (start_time, n))
+		#img = cv2.imread("images/image.png", cv2.IMREAD_GRAYSCALE)
+	
+	"""
+		print("img2:", img)
+		height, width = i.shape
 		size = (width, height)
 		img_array.append(img)
 	
+
 	out = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), fps, size) 
 	for i in range(len(img_array)):
+		print("img3:",img_array[i])
 		out.write(img_array[i])
 	out.release()
+	
 
+	fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+	writer = cv2.VideoWriter(video_name, fourcc, fps, size)
 
-	out = cv2.VideoWriter('test.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 5, size) 
-	for i in range(len(img_array)):
-		out.write(img_array[i])
-	out.release()
+	for frame in img_lst:
+		writer.write(frame)
+
+	writer.release() 
+	"""
 
 
 
@@ -84,7 +108,7 @@ def test_take_picture():
 		cam.record()
 		image, meta = cam.image()
 
-		plt.imshow(image, cmap='gray')
+		plt.imshow(image)
 		plt.show()
 
 def acquire_images(number_of_images, exposure_time):
@@ -92,25 +116,31 @@ def acquire_images(number_of_images, exposure_time):
 		cam.set_exposure_time(exposure_time=exposure_time)
 		cam.record(number_of_images=number_of_images)
 		images = cam.images()
-		cam.close()
-	return images
+		return images[0]
 
 def record_video(video_name, fps, number_of_images, exposure_time): # exposure_time is in seconds as a float or int
+	
 	images = acquire_images(number_of_images, exposure_time)
 	nparray_to_video(images, video_name, fps)
 
-def acquire_images_time(number_of_images, exposure_time):
-	start = time.time()
-	acquire_images(number_of_images, exposure_time)
-	end = time.time()
-	print("start:", start)
-	print("end  :", end)
-	print("dif  :", end-start)
+def acquire_images(exposure_time, time_limit):
+	with pco.Camera() as cam:
+		cam.set_exposure_time(exposure_time=exposure_time)
+		start_time = time.time()
+		for i in range(time_limit):
+				
+			cam.record(1)
+			image, meta = cam.image()
+			img = Image.fromarray(image.astype(np.uint8))
+			img.save('images/%d_%04d.png' % (start_time, i))
+			
+
 	return 
+
 
 if __name__ == "__main__":
 	# uncomment these lines for testing cv2
-	img_lst = generate_testing_nparrays(30)
+	#img_lst = generate_testing_nparrays(30)
 	#nparray_to_video(img_lst, 'test2.mp4', 1)
 
 	# storing 3d numpy arrays in file 
@@ -119,5 +149,16 @@ if __name__ == "__main__":
 	
 	# testing procedure
 	#record_video('test.mp4', 5, 1000, 0.001) 
-	record_video('test.mp4', 5, 7200 , 0.5) 
+	"""
+	record_video('test.mp4', 1, 1000, 2) 
+	time_limit = 100 # hours
+	for i in range(time_limit):
+		record_video
+	
+	"""
+	time_limit = 1000
+	if len(argv) > 1:
+		time_limit=int(argv[1])
+	acquire_images(1, time_limit)
 	#acquire_images_time(1000, 0.01)
+	#test_take_picture()
