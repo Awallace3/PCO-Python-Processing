@@ -1,0 +1,25 @@
+name: trackpy
+channels:
+  - conda-forge
+  - defaults
+  - pypi
+dependencies:
+  - python=3.7.10
+  - av=8.0.3
+  - imageio=2.9.0
+  - imageio-ffmpeg=0.4.4
+  - ipykernel=5.3.4
+  - ipython=7.22.0
+  - ipython_genutils=0.2.0
+  - ipywidgets=7.6.3
+  - jedi=0.17.0
+  - jupyter=1.0.0
+  - jupyter_client=6.1.12
+  - jupyter_core=4.7.1
+  - matplotlib=3.4.2
+  - notebook=6.4.0
+  - numpy=1.19.2
+  - packaging=21.0
+  - pillow=8.3.1
+  - pims=0.5
+  - trackpy=0.5.0
